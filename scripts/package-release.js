@@ -11,9 +11,10 @@ const rootDir = path.resolve(__dirname, '..');
 const require = createRequire(import.meta.url);
 const pkg = require(path.join(rootDir, 'package.json'));
 
-const distDir = path.join(rootDir, 'dist');
+const isFirefox = process.env.TARGET === 'firefox' || process.argv.includes('--firefox');
+const distDir = path.join(rootDir, isFirefox ? 'dist-firefox' : 'dist');
 const releaseDir = path.join(rootDir, 'release');
-const zipName = `videospeed-${pkg.version}.zip`;
+const zipName = `videospeed-${isFirefox ? 'firefox-' : ''}${pkg.version}.zip`;
 const zipPath = path.join(releaseDir, zipName);
 
 const CWS_SIZE_LIMIT = 128 * 1024 * 1024; // 128 MB

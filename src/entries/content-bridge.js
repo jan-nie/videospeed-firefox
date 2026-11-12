@@ -10,6 +10,7 @@
  *   3. Bridge responds with VSC_SETTINGS_READY once its storage snapshot is ready
  */
 
+/* global cloneInto -- Firefox content-script API */
 import { isBlacklisted } from '../utils/blacklist.js';
 import { matchSiteRule } from '../utils/site-pattern.js';
 
@@ -21,8 +22,24 @@ const SPEED_MAX = 16;
 const docEl = document.documentElement;
 let bridgeInitialized = false;
 
+/**
+ * Dispatch a CustomEvent to the MAIN world.
+ *
+ * Firefox wraps objects created in a content script in Xrays: the page sees
+ * `event.detail` as an opaque object ("Permission denied to access
+ * property"). cloneInto() (Firefox-only) copies the detail into the page's
+ * compartment; Chromium shares plain data across worlds and needs no copy.
+ * @param {string} type
+ * @param {*} detail
+ */
+function emitToPage(type, detail) {
+  const pageDetail =
+    typeof cloneInto === 'function' ? cloneInto(detail, document.defaultView) : detail;
+  docEl.dispatchEvent(new CustomEvent(type, { detail: pageDetail }));
+}
+
 function dispatchAbort() {
-  docEl.dispatchEvent(new CustomEvent('VSC_SETTINGS_READY', { detail: { abort: true } }));
+  emitToPage('VSC_SETTINGS_READY', { abort: true });
 }
 
 function init() {
@@ -73,14 +90,10 @@ function init() {
         delete publicSettings.blacklist;
         delete publicSettings.enabled;
         bridgeActive = true;
-        docEl.dispatchEvent(
-          new CustomEvent('VSC_SETTINGS_READY', {
-            detail: {
-              settings: publicSettings,
-              hostname: location.hostname.replace(/^www\./, ''),
-            },
-          })
-        );
+        emitToPage('VSC_SETTINGS_READY', {
+          settings: publicSettings,
+          hostname: location.hostname.replace(/^www\./, ''),
+        });
       },
       { once: true }
     );
@@ -97,7 +110,7 @@ function init() {
       }
       if (enabledChange?.newValue === false) {
         bridgeActive = false;
-        docEl.dispatchEvent(new CustomEvent('VSC_MESSAGE', { detail: { type: 'VSC_TEARDOWN' } }));
+        emitToPage('VSC_MESSAGE', { type: 'VSC_TEARDOWN' });
         return;
       }
       if (!bridgeActive) {
@@ -108,13 +121,13 @@ function init() {
       delete relayChanges.enabled;
       delete relayChanges.blacklist;
       if (Object.keys(relayChanges).length > 0) {
-        docEl.dispatchEvent(new CustomEvent('VSC_STORAGE_CHANGED', { detail: relayChanges }));
+        emitToPage('VSC_STORAGE_CHANGED', relayChanges);
       }
     });
 
     chrome.runtime.onMessage.addListener((request) => {
       if (bridgeActive) {
-        docEl.dispatchEvent(new CustomEvent('VSC_MESSAGE', { detail: request }));
+        emitToPage('VSC_MESSAGE', request);
       }
     });
 

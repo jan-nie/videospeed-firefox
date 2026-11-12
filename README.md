@@ -1,6 +1,6 @@
 # [Install from Chrome Web Store][chrome-web-store-link]
 
-[![Chrome Web Store][chrome-web-store-version]][chrome-web-store-link] [![Chrome Web Store Users][chrome-web-store-users-badge]][chrome-web-store-link] [![Chrome Web Store Users][chrome-web-store-stars]][chrome-web-store-link]  
+[![Chrome Web Store][chrome-web-store-version]][chrome-web-store-link] [![Chrome Web Store Users][chrome-web-store-users-badge]][chrome-web-store-link] [![Chrome Web Store Users][chrome-web-store-stars]][chrome-web-store-link]
 
 **Video Speed Controller** gives you fine-grained control over any HTML5 video
 or audio element, on any site.
@@ -24,7 +24,6 @@ means higher engagement. With practice, many settle at 2x or above and find it
 HTML5 media elements expose a native playback rate API, but most players hide
 or artificially limit it. Speed adjustments should be effortless and frequent:
 we don't read at a fixed pace, and we shouldn't watch at one either.
-
 
 ## Features
 
@@ -65,6 +64,25 @@ shortcuts with different values for quick toggling. Click **Add New** in
 settings to create additional bindings. Refresh the page after making changes
 for them to take effect.
 
+## Firefox build
+
+This fork also builds for Firefox (128+) from the same sources:
+
+```sh
+npm ci
+npm run build:firefox     # unpacked add-on in dist-firefox/
+npm run release:firefox   # zip in release/ for AMO / signing
+```
+
+To try it without signing, open `about:debugging#/runtime/this-firefox`,
+click **Load Temporary Add-on…** and select `dist-firefox/manifest.json`
+(temporary add-ons are removed when Firefox restarts).
+
+Differences from the Chrome build are confined to the build step and the
+content bridge: the manifest uses `background.scripts` instead of a service
+worker and adds `browser_specific_settings.gecko`, and bridge event details
+are passed through `cloneInto()` so the page-world script can read them.
+
 ## License
 
 (MIT License) - Copyright (c) 2014 Ilya Grigorik
@@ -73,6 +91,5 @@ for them to take effect.
 [chrome-web-store-users-badge]: https://img.shields.io/chrome-web-store/users/nffaoalbilbmmfgbnbgppjihopabppdk
 [chrome-web-store-stars]: https://img.shields.io/chrome-web-store/stars/nffaoalbilbmmfgbnbgppjihopabppdk
 [github-release-badge]: https://img.shields.io/github/v/release/igrigorik/videospeed
-
 [chrome-web-store-link]: https://chromewebstore.google.com/detail/video-speed-controller/nffaoalbilbmmfgbnbgppjihopabppdk
 [github-release-link]: https://github.com/igrigorik/videospeed/releases

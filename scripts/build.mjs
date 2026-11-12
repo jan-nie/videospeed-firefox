@@ -13,13 +13,45 @@ const require = createRequire(import.meta.url);
 const pkg = require(path.join(rootDir, 'package.json'));
 
 const isWatch = process.argv.includes('--watch');
-const isRelease = process.env.RELEASE === '1';
+const isRelease = process.env.RELEASE === '1' || process.argv.includes('--release');
+const isFirefox = process.env.TARGET === 'firefox' || process.argv.includes('--firefox');
+const outDir = path.resolve(rootDir, isFirefox ? 'dist-firefox' : 'dist');
+
+// Firefox add-on ID. Must stay stable across releases so AMO and installed
+// copies recognize updates; change it once if you publish your own listing.
+const GECKO_ID = '{9f579d8f-4e3d-4b56-8436-ac59480202dd}';
+// world: "MAIN" content scripts need Firefox 128+.
+const GECKO_MIN_VERSION = '128.0';
+
+/**
+ * Adapt the Chrome MV3 manifest for Firefox:
+ * - Firefox runs MV3 background code as an event page (background.scripts),
+ *   not as a service worker.
+ * - MV3 add-ons need an explicit gecko ID, and AMO requires the data
+ *   collection declaration (this extension collects nothing).
+ * @param {Object} manifest
+ * @returns {Object}
+ */
+function toFirefoxManifest(manifest) {
+  const { minimum_chrome_version: _chromeOnly, ...rest } = manifest;
+  return {
+    ...rest,
+    background: { scripts: [manifest.background.service_worker] },
+    browser_specific_settings: {
+      gecko: {
+        id: GECKO_ID,
+        strict_min_version: GECKO_MIN_VERSION,
+        data_collection_permissions: { required: ['none'] },
+      },
+    },
+  };
+}
 
 const common = {
   bundle: true,
   sourcemap: isRelease ? false : false, // set true locally if debugging
   minify: isRelease,
-  target: 'chrome114',
+  target: isFirefox ? 'firefox128' : 'chrome114',
   platform: 'browser',
   legalComments: 'none',
   format: 'iife', // preserve side-effects and simple global init without ESM runtime
@@ -27,33 +59,36 @@ const common = {
 };
 
 async function copyStaticFiles() {
-  const outDir = path.resolve(rootDir, 'dist');
-
   try {
     // Ensure the output directory exists and is clean
     await fs.emptyDir(outDir);
 
     // Inject version from package.json into manifest
-    const manifest = await fs.readJson(path.join(rootDir, 'manifest.json'));
+    let manifest = await fs.readJson(path.join(rootDir, 'manifest.json'));
     manifest.version = pkg.version;
+    if (isFirefox) {
+      manifest = toFirefoxManifest(manifest);
+    }
     await fs.writeJson(path.join(outDir, 'manifest.json'), manifest, { spaces: 2 });
-    console.log(`✅ Manifest version set to ${pkg.version}${isRelease ? ' (release)' : ''}`);
+    console.log(
+      `✅ Manifest version set to ${pkg.version}${isRelease ? ' (release)' : ''}${isFirefox ? ' (firefox)' : ''}`
+    );
 
     // Paths to copy
     const pathsToCopy = {
       'src/assets': path.join(outDir, 'assets'),
       'src/ui': path.join(outDir, 'ui'),
       'src/styles': path.join(outDir, 'styles'),
-      'LICENSE': path.join(outDir, 'LICENSE'),
+      LICENSE: path.join(outDir, 'LICENSE'),
       'CONTRIBUTING.md': path.join(outDir, 'CONTRIBUTING.md'),
       'PRIVACY.md': path.join(outDir, 'PRIVACY.md'),
-      'README.md': path.join(outDir, 'README.md')
+      'README.md': path.join(outDir, 'README.md'),
     };
 
     // Perform copy operations
     for (const [src, dest] of Object.entries(pathsToCopy)) {
       await fs.copy(path.join(rootDir, src), dest, {
-        filter: (src) => !path.basename(src).endsWith('.js')
+        filter: (src) => !path.basename(src).endsWith('.js'),
       });
     }
 
@@ -72,12 +107,12 @@ async function build() {
       ...common,
       entryPoints: {
         'content-bridge': 'src/entries/content-bridge.js',
-        'inject': 'src/entries/inject-entry.js',
-        'background': 'src/background.js',
+        inject: 'src/entries/inject-entry.js',
+        background: 'src/background.js',
         'ui/popup/popup': 'src/ui/popup/popup.js',
-        'ui/options/options': 'src/ui/options/options.js'
+        'ui/options/options': 'src/ui/options/options.js',
       },
-      outdir: 'dist',
+      outdir: outDir,
     };
 
     if (isWatch) {

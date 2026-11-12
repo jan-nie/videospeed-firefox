@@ -134,6 +134,40 @@ describe('content-bridge', () => {
   });
 
   // =========================================================================
+  // Firefox — details must be cloned into the page compartment (Xrays)
+  // =========================================================================
+
+  describe('firefox cloneInto', () => {
+    it('clones event details into the page when cloneInto exists', async () => {
+      const cloneInto = vi.fn((obj) => ({ ...obj, cloned: true }));
+      vi.stubGlobal('cloneInto', cloneInto);
+      const { events, cleanup } = collectEvents('VSC_SETTINGS_READY');
+      eventCleanup = cleanup;
+
+      await loadBridge();
+      await requestSettings();
+
+      expect(cloneInto).toHaveBeenCalledTimes(1);
+      expect(cloneInto.mock.calls[0][1]).toBe(document.defaultView);
+      expect(events).toHaveLength(1);
+      expect(events[0].detail.cloned).toBe(true);
+      expect(events[0].detail.settings).toBeTypeOf('object');
+    });
+
+    it('passes details through unchanged without cloneInto (Chromium)', async () => {
+      const { events, cleanup } = collectEvents('VSC_SETTINGS_READY');
+      eventCleanup = cleanup;
+
+      await loadBridge();
+      await requestSettings();
+
+      expect(events).toHaveLength(1);
+      expect(events[0].detail.cloned).toBeUndefined();
+      expect(events[0].detail.settings).toBeTypeOf('object');
+    });
+  });
+
+  // =========================================================================
   // Early exit — disabled/blacklisted sites skip initialization
   // =========================================================================
 
