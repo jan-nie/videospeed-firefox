@@ -84,6 +84,8 @@ Authority ends with that transaction; VSC does not own the register permanently 
 
 This deliberately favors VSC's granular rate over players that enforce restricted rates through change-event reactions. Because DOM propagation cannot suppress one listener, the corrective echo is hidden from all downstream page listeners; player UI or internal state may therefore retain the rejected rate. Causal proof excludes earlier document-capture listeners, listeners that block target observation, listeners installed after VSC's observer during the dispatch, and asynchronous rewrites. Since `ratechange` identifies neither writer nor assigned value, a genuine native choice matching the recorded counter-rate before its queued event arrives can receive one correction; re-selection is preferred to allowing a proven veto to replace VSC authority.
 
+A site handler may opt into hiding every VSC write echo (`hidesRateEchoes()`) when its player vetoes observed rates asynchronously, which is outside the causal proof above. Twitch is the only such site (#1651): its player answers any observed rate above 2x with `playbackRate = 2` from a worker RPC about 1ms later, so the bounded fight budget would always surrender. Hiding the echo prevents the veto from being issued; page-initiated changes still propagate and are arbitrated normally. Like reactive echo isolation, this is an adapter-level propagation policy and does not change the modeled state machine.
+
 The policy is automatic. Add a compatibility mode only for a concrete conflict outside this rule. Reactive-echo isolation is browser-adapter policy, not a pure-arbiter or TLA+ transition.
 
 There is intentionally no document-wide surrender effect. Local surrender is not an authority mutation.

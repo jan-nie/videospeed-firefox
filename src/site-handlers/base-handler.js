@@ -47,6 +47,17 @@ class BaseSiteHandler {
   }
 
   /**
+   * Whether ratechange echoes of VSC's own writes must be hidden from page
+   * listeners. Override only for players that observe the event and veto
+   * the rate asynchronously (out of reach of the propagated-echo proof), and
+   * cite the issue that motivated it. Site-initiated changes are unaffected.
+   * @returns {boolean}
+   */
+  hidesRateEchoes() {
+    return false;
+  }
+
+  /**
    * Handle site-specific speed change.
    * Called whenever the extension sets playback speed (user action, fight-back, etc.).
    * Override to sync with a site's custom player API.

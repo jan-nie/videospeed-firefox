@@ -15,6 +15,7 @@ class SiteHandlerManager {
       window.VSC.AppleHandler,
       window.VSC.DailymotionHandler,
       window.VSC.FrameHandler,
+      window.VSC.TwitchHandler,
     ];
   }
 
@@ -64,6 +65,15 @@ class SiteHandlerManager {
   getControllerPosition(parent, video) {
     const handler = this.getCurrentHandler();
     return handler.getControllerPosition(parent, video);
+  }
+
+  /**
+   * Whether the current site requires VSC's own ratechange echoes to be
+   * hidden from page listeners.
+   * @returns {boolean}
+   */
+  hidesRateEchoes() {
+    return this.getCurrentHandler().hidesRateEchoes?.() === true;
   }
 
   /**

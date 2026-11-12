@@ -553,7 +553,8 @@ class ActionHandler {
     const numericSpeed = Number(rate.toFixed(2));
     if (video.playbackRate !== numericSpeed && this.eventManager?.arbitration) {
       this.eventManager.arbitration.noteWrite(video, numericSpeed, {
-        suppressPropagation: suppressEchoPropagation,
+        suppressPropagation:
+          suppressEchoPropagation || window.VSC.siteHandlerManager.hidesRateEchoes(),
       });
     }
     window.VSC.siteHandlerManager.handleSpeedChange(video, numericSpeed);
