@@ -42,7 +42,7 @@ class ShadowDOMManager {
       :host(.vsc-show) #controller {
         display: block !important;
         visibility: visible !important;
-        opacity: ${opacity} !important;
+        opacity: var(--vsc-opacity, ${opacity}) !important;
       }
 
       /* Explicit hide and unavailable media are final: flashes and user show
@@ -148,20 +148,20 @@ class ShadowDOMManager {
     // Create controller div
     const controller = document.createElement('div');
     controller.id = 'controller';
-    controller.style.cssText = `top:${top}; left:${left}; opacity:${opacity};`;
+    controller.style.cssText = `top:${top}; left:${left};`;
 
     // Create draggable speed indicator
     const draggable = document.createElement('span');
     draggable.setAttribute('data-action', 'drag');
     draggable.className = 'draggable';
-    draggable.style.cssText = `font-size: ${buttonSize}px;`;
+    draggable.style.cssText = '';
     draggable.textContent = speed;
     controller.appendChild(draggable);
 
     // Create controls span
     const controls = document.createElement('span');
     controls.id = 'controls';
-    controls.style.cssText = `font-size: ${buttonSize}px; line-height: ${buttonSize}px;`;
+    controls.style.cssText = '';
 
     // Create buttons
     const buttons = [
@@ -185,6 +185,11 @@ class ShadowDOMManager {
     shadow.appendChild(controller);
 
     window.VSC.logger.debug('Shadow DOM created for video controller');
+    ShadowDOMManager.applyAppearance(shadow, {
+      opacity: Number(opacity),
+      buttonSize: Number(buttonSize),
+    });
+
     return shadow;
   }
 
@@ -193,6 +198,35 @@ class ShadowDOMManager {
    * @param {ShadowRoot} shadow - Shadow root
    * @returns {HTMLElement} Controller element
    */
+  /**
+   * Apply opacity and button size to an existing controller. Used at
+   * creation and when the options change while the page is open.
+   * @param {ShadowRoot} shadow
+   * @param {{opacity?: number, buttonSize?: number}} appearance
+   */
+  static applyAppearance(shadow, { opacity, buttonSize } = {}) {
+    const controller = shadow?.querySelector('#controller');
+    if (!controller) {
+      return;
+    }
+    if (Number.isFinite(opacity)) {
+      controller.style.opacity = String(opacity);
+      // Read by the explicit-show/flash rule, which must keep the opacity.
+      controller.style.setProperty('--vsc-opacity', String(opacity));
+    }
+    if (Number.isFinite(buttonSize) && buttonSize > 0) {
+      const draggable = shadow.querySelector('.draggable');
+      const controls = shadow.querySelector('#controls');
+      if (draggable) {
+        draggable.style.fontSize = `${buttonSize}px`;
+      }
+      if (controls) {
+        controls.style.fontSize = `${buttonSize}px`;
+        controls.style.lineHeight = `${buttonSize}px`;
+      }
+    }
+  }
+
   static getController(shadow) {
     return shadow.querySelector('#controller');
   }

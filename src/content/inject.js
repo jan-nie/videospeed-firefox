@@ -269,8 +269,21 @@ class VideoSpeedExtension {
     }
   }
 
-  /** Live-update the user's custom CSS when options are saved. */
+  /** Live-update the user's custom CSS and controller appearance when options are saved. */
   setupCSSLiveUpdates() {
+    document.documentElement.addEventListener('VSC_STORAGE_CHANGED', (e) => {
+      const opacity = e.detail?.controllerOpacity?.newValue;
+      const buttonSize = e.detail?.controllerButtonSize?.newValue;
+      if (opacity === undefined && buttonSize === undefined) {
+        return;
+      }
+      for (const media of window.VSC.stateManager?.getAllMediaElements() ?? []) {
+        window.VSC.ShadowDOMManager.applyAppearance(media.vsc?.div?.shadowRoot, {
+          opacity: opacity === undefined ? undefined : Number(opacity),
+          buttonSize: buttonSize === undefined ? undefined : Number(buttonSize),
+        });
+      }
+    });
     document.documentElement.addEventListener('VSC_STORAGE_CHANGED', (e) => {
       if (e.detail?.customCSS?.newValue === undefined || !this._controllerSheet) {
         return;

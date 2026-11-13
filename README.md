@@ -70,8 +70,9 @@ we don't read at a fixed pace, and we shouldn't watch at one either.
 All shortcuts are fully customizable in the extension's settings page. You can
 reassign keys, add modifier combinations, and define multiple preferred-speed
 shortcuts with different values for quick toggling. Click **Add New** in
-settings to create additional bindings. Refresh the page after making changes
-for them to take effect.
+settings to create additional bindings. Saved changes apply to open tabs
+immediately; only site rules (disable a site, per-site default speed) and
+"Hide controller by default" take effect on the next page load.
 
 ## Install
 
