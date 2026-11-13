@@ -41,6 +41,7 @@ import '../core/video-controller.js';
 
 // UI components - depends on core functionality
 import '../ui/controls.js';
+import '../ui/pointer-autohide.js';
 import '../ui/drag-handler.js';
 import '../ui/shadow-dom.js';
 import '../ui/vsc-controller-element.js';

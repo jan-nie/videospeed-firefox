@@ -21,6 +21,18 @@ vsc-controller {
   user-select: none;
 }
 
+/* Pointer autohide (src/ui/pointer-autohide.js): the pointer left the
+   player. Same layer as site autohide — explicit SHOW and feedback flashes
+   (vsc-show) still show the controller; HIDE/no-source stay final in the
+   shadow cascade. Fade out, then drop visibility so it takes no clicks. */
+vsc-controller[data-vsc-idle]:not([data-vsc-visibility='show']):not(.vsc-show) {
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.25s ease,
+    visibility 0s linear 0.25s;
+}
+
 /* shift YT 3D controller down */
 /* e.g. https://www.youtube.com/watch?v=erftYPflJzQ */
 .ytp-webgl-spherical-control {

@@ -10,7 +10,7 @@ The contract covers:
 
 - one explicit override per controller: `AUTO`, `SHOW`, or `HIDE`;
 - automatic visibility from `startHidden`, media visibility, and audio-controller enablement;
-- site-owned autohide such as YouTube's `.ytp-autohide`;
+- site-owned autohide such as YouTube's `.ytp-autohide`, and the optional pointer autohide (`hideOnMouseLeave`);
 - temporary video feedback and persistent audio feedback;
 - no-source and external host hiding;
 - targeted and document-wide display actions;
@@ -20,17 +20,17 @@ Explicit `SHOW` / `HIDE` intent persists for the lifetime of its controller. Per
 
 ## State
 
-| Concept            | Pure model        | TLA+                 | DOM/adapter                                                               |
-| ------------------ | ----------------- | -------------------- | ------------------------------------------------------------------------- |
-| Lifecycle          | `attached`        | `attached[i]`        | `video.vsc`, connected `<vsc-controller>`, `StateManager` membership      |
-| User intent        | `override`        | `overrideMode[i]`    | absent `data-vsc-visibility`, or `show` / `hide`                          |
-| Automatic layer    | `automaticHidden` | `automaticHidden[i]` | `vsc-hidden`                                                              |
-| Unusable media     | `noSource`        | `noSource[i]`        | `vsc-nosource`                                                            |
-| Site autohide      | `siteAutohide`    | `siteAutohide[i]`    | domain-scoped host CSS observing page-owned state such as `.ytp-autohide` |
-| External host hide | `hostHidden`      | `hostHidden[i]`      | computed `display` / `visibility` on `<vsc-controller>`                   |
-| Feedback           | `flash`           | `flashMode[i]`       | `vsc-show` plus an optional `flashTimer`                                  |
-| Preference         | `startHidden`     | `startHidden`        | live settings value consulted by future automatic-show and flash events   |
-| Media kind         | `mediaType`       | `AudioControllers`   | media tag name                                                            |
+| Concept            | Pure model        | TLA+                 | DOM/adapter                                                                                                               |
+| ------------------ | ----------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Lifecycle          | `attached`        | `attached[i]`        | `video.vsc`, connected `<vsc-controller>`, `StateManager` membership                                                      |
+| User intent        | `override`        | `overrideMode[i]`    | absent `data-vsc-visibility`, or `show` / `hide`                                                                          |
+| Automatic layer    | `automaticHidden` | `automaticHidden[i]` | `vsc-hidden`                                                                                                              |
+| Unusable media     | `noSource`        | `noSource[i]`        | `vsc-nosource`                                                                                                            |
+| Site autohide      | `siteAutohide`    | `siteAutohide[i]`    | domain-scoped host CSS observing page-owned state such as `.ytp-autohide`; `data-vsc-idle` on the host (pointer autohide) |
+| External host hide | `hostHidden`      | `hostHidden[i]`      | computed `display` / `visibility` on `<vsc-controller>`                                                                   |
+| Feedback           | `flash`           | `flashMode[i]`       | `vsc-show` plus an optional `flashTimer`                                                                                  |
+| Preference         | `startHidden`     | `startHidden`        | live settings value consulted by future automatic-show and flash events                                                   |
+| Media kind         | `mediaType`       | `AudioControllers`   | media tag name                                                                                                            |
 
 `startHidden` initializes the automatic layer but is not itself a permanent hard-hide bit. A live change to `startHidden` is non-retroactive: it does not immediately rewrite an existing controller or cancel an active flash. It blocks future automatic-show and flash requests until disabled.
 
@@ -55,6 +55,8 @@ external host hide / no source / FORCE_HIDE
 `SHOW` deliberately overrides `vsc-hidden` and site autohide, but it cannot resurrect a detached controller, make unusable media useful, or defeat unrelated page CSS that hides the light-DOM host. `HIDE` defeats a stale flash class. Opacity is excluded from the discrete visibility predicate because fades pass through zero; computed `display` and `visibility` on both host and shadow controller define the sampled state.
 
 YouTube site autohide is implemented by domain-scoped light-DOM CSS on `<vsc-controller>`, not by copying page state into extension-owned DOM and not by the deprecated `:host-context()` selector. The host rule excludes explicit `SHOW` and `vsc-show` feedback before applying `visibility: hidden`; shadow selectors keep automatic hide, explicit `HIDE`, and no-source precedence. Changing either side requires a manual check in Firefox, not just a unit test.
+
+Pointer autohide (`src/ui/pointer-autohide.js`, opt-in via `hideOnMouseLeave` / `hideOnMouseLeaveDelay`) is another input to the same site-autohide layer. For video controllers it sets `data-vsc-idle` on the light-DOM host once the pointer has been outside the media element's and the controller's bounding boxes (or outside the document) for the configured delay, and removes it as soon as the pointer is back. A host rule in `inject.css` hides an idle host unless it carries `data-vsc-visibility="show"` or `vsc-show`, exactly like the YouTube rule, so the abstract model is unchanged: it is a `siteAutohide` toggle, and SHOW, flash, HIDE and no-source keep their precedence.
 
 ## User toggle transition
 

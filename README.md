@@ -48,6 +48,8 @@ we don't read at a fixed pace, and we shouldn't watch at one either.
   site's player tries to reset it.
 - **Draggable overlay** - reposition the on-video speed indicator anywhere
   you like.
+- **Hide on mouse leave** - optionally fade the overlay out shortly after
+  the mouse leaves the player (Settings > Preferences).
 - **Fully customizable shortcuts** - remap every key, add modifier combos
   (Ctrl, Shift, Alt), create multiple preferred-speed toggles.
 - **Custom controller CSS** - style or reposition the overlay with your own

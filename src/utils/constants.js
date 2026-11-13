@@ -37,6 +37,8 @@ if (!window.VSC.Constants.DEFAULT_SETTINGS) {
     exclusiveKeys: false, // default: false
     audioBoolean: true, // default: true (enable audio controller support)
     startHidden: false, // default: false
+    hideOnMouseLeave: false, // hide controller when the pointer leaves the player
+    hideOnMouseLeaveDelay: 2, // seconds before hiding
     controllerOpacity: 0.3, // default: 0.3
     controllerButtonSize: 14,
     customCSS: '', // user's additional CSS injected alongside the built-in defaults

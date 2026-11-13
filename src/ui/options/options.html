@@ -58,6 +58,20 @@
           <input id="startHidden" type="checkbox" />
         </div>
         <div class="row">
+          <label for="hideOnMouseLeave"
+            >Hide controller when the mouse leaves the player<br />
+            <em>Fades the controller out shortly after the pointer leaves the video.</em></label
+          >
+          <input id="hideOnMouseLeave" type="checkbox" />
+        </div>
+        <div class="row">
+          <label for="hideOnMouseLeaveDelay"
+            >Hide delay (seconds)<br />
+            <em>How long to wait after the mouse left the player. Default: 2</em></label
+          >
+          <input id="hideOnMouseLeaveDelay" type="text" value="" />
+        </div>
+        <div class="row">
           <label for="exclusiveKeys"
             >Exclusive keyboard shortcuts<br />
             <em>When possible, prevent websites from also handling VSC shortcut keys.</em></label

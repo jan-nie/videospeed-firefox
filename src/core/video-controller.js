@@ -49,6 +49,14 @@ class VideoController {
     // Create UI
     this.div = this.initializeControls();
 
+    // Hide the controller shortly after the pointer leaves the player
+    // (opt-in; settings are read live). Audio controllers are excluded:
+    // <audio> elements are often invisible, so the pointer is never "inside".
+    if (this.video.tagName === 'VIDEO' && window.VSC.PointerAutohide) {
+      this.pointerAutohide = new window.VSC.PointerAutohide(this.video, this.div, this.config);
+      this.pointerAutohide.start();
+    }
+
     // Set up event handlers
     this.setupEventHandlers();
 
@@ -306,6 +314,11 @@ class VideoController {
     if (this.div?.flashTimer !== undefined) {
       clearTimeout(this.div.flashTimer);
       this.div.flashTimer = undefined;
+    }
+
+    if (this.pointerAutohide) {
+      this.pointerAutohide.stop();
+      this.pointerAutohide = null;
     }
 
     // Remove DOM element
