@@ -573,7 +573,10 @@ function add_predefined_shortcut(data) {
 function createKeyBindings(item) {
   const action = item.querySelector('.customDo').value;
   const input = item.querySelector('.customKey');
-  const value = Number(item.querySelector('.customValue').value);
+  // Actions without a value keep a hidden, possibly empty input; validate()
+  // rejects invalid numbers for all other actions before we get here.
+  const parsedValue = parseDecimal(item.querySelector('.customValue').value);
+  const value = Number.isFinite(parsedValue) ? parsedValue : 0;
   const predefined = !!item.id;
 
   const binding = {
@@ -613,19 +616,33 @@ function add_site_rule(data = { enabled: true }) {
 }
 
 /**
+ * Parse a user-typed decimal number. Accepts a decimal comma ("0,25") as
+ * well as a point, since many locales type numbers that way.
+ * @param {string|number} s
+ * @returns {number} the value, or NaN when empty or not a plain number
+ */
+function parseDecimal(s) {
+  if (typeof s === 'number') {
+    return s;
+  }
+  const text = String(s ?? '')
+    .trim()
+    .replace(',', '.');
+  if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(text)) {
+    return NaN;
+  }
+  return Number(text);
+}
+
+/**
  * Parse a speed input string.
- * Returns the numeric value, or null if empty/invalid.
+ * Returns the numeric value, null if empty, or NaN if invalid (rejected by validate()).
  */
 function parseSpeed(s) {
   if (typeof s !== 'string') {
     return s ?? null;
   }
-  const trimmed = s.trim();
-  if (trimmed === '') {
-    return null;
-  }
-  const v = parseFloat(trimmed);
-  return isNaN(v) ? null : v;
+  return s.trim() === '' ? null : parseDecimal(s);
 }
 
 /**
@@ -687,6 +704,7 @@ function validate() {
     // Validate speed range
     if (rule.speed !== null && rule.speed !== undefined) {
       if (
+        !Number.isFinite(rule.speed) ||
         rule.speed < window.VSC.Constants.SPEED_LIMITS.MIN ||
         rule.speed > window.VSC.Constants.SPEED_LIMITS.MAX
       ) {
@@ -704,7 +722,50 @@ function validate() {
     }
   }
 
+  const numberError = validateNumberInputs();
+  if (numberError) {
+    status.textContent = `Error: ${numberError}`;
+    status.classList.add('show', 'error');
+    window.validationTimeout = setTimeout(() => {
+      status.textContent = '';
+      status.classList.remove('show', 'error');
+    }, 5000);
+    return false;
+  }
+
   return valid;
+}
+
+/**
+ * Check every numeric option field. Invalid values used to be stored as NaN
+ * (e.g. "0,5" for the opacity made the controller invisible).
+ * @returns {string|null} an error message, or null if all values are valid
+ */
+function validateNumberInputs() {
+  const noValueActions = window.VSC.Constants.CUSTOM_ACTIONS_NO_VALUES;
+  for (const row of document.querySelectorAll('.customs')) {
+    const action = row.querySelector('.customDo').value;
+    if (noValueActions.includes(action)) {
+      continue;
+    }
+    if (!Number.isFinite(parseDecimal(row.querySelector('.customValue').value))) {
+      const key = row.querySelector('.customKey')?.value || action;
+      return `The value for shortcut "${key}" must be a number (e.g. 0.25).`;
+    }
+  }
+
+  const fields = [
+    ['controllerOpacity', 'Controller opacity', 0, 1],
+    ['controllerButtonSize', 'Controller button size', 1, 100],
+    ['hideOnMouseLeaveDelay', 'Hide delay', 0, 600],
+  ];
+  for (const [id, label, min, max] of fields) {
+    const value = parseDecimal(document.getElementById(id).value);
+    if (!Number.isFinite(value) || value < min || value > max) {
+      return `${label} must be a number between ${min} and ${max}.`;
+    }
+  }
+  return null;
 }
 
 // Saves options using VideoSpeedConfig system
@@ -726,13 +787,14 @@ async function save_options() {
     const audioBoolean = document.getElementById('audioBoolean').checked;
     const startHidden = document.getElementById('startHidden').checked;
     const hideOnMouseLeave = document.getElementById('hideOnMouseLeave').checked;
-    const hideDelayInput = Number(document.getElementById('hideOnMouseLeaveDelay').value);
-    const hideOnMouseLeaveDelay =
-      Number.isFinite(hideDelayInput) && hideDelayInput >= 0
-        ? hideDelayInput
-        : window.VSC.Constants.DEFAULT_SETTINGS.hideOnMouseLeaveDelay;
-    const controllerOpacity = Number(document.getElementById('controllerOpacity').value);
-    const controllerButtonSize = Number(document.getElementById('controllerButtonSize').value);
+    // Validated by validateNumberInputs() before saving.
+    const hideOnMouseLeaveDelay = parseDecimal(
+      document.getElementById('hideOnMouseLeaveDelay').value
+    );
+    const controllerOpacity = parseDecimal(document.getElementById('controllerOpacity').value);
+    const controllerButtonSize = parseDecimal(
+      document.getElementById('controllerButtonSize').value
+    );
     const logLevel = parseInt(document.getElementById('logLevel').value);
     const siteRules = collectSiteRules();
     const customCSS = document.getElementById('controllerCSS').value;

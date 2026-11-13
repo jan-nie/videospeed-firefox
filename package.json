@@ -61,5 +61,8 @@
     "tabWidth": 2,
     "trailingComma": "es5",
     "printWidth": 100
+  },
+  "overrides": {
+    "vite": "^8.1.7"
   }
 }

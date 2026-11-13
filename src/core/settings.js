@@ -58,6 +58,21 @@ if (!window.VSC.VideoSpeedConfig) {
     }
 
     /**
+     * A stored number if it is finite and within [min, max], else the default.
+     * @param {*} value
+     * @param {string} key - DEFAULT_SETTINGS key for the fallback
+     * @param {number} min
+     * @param {number} max
+     * @returns {number}
+     */
+    static validNumber(value, key, min, max) {
+      const n = typeof value === 'number' ? value : NaN;
+      return Number.isFinite(n) && n >= min && n <= max
+        ? n
+        : window.VSC.Constants.DEFAULT_SETTINGS[key];
+    }
+
+    /**
      * Load settings from extension storage or pre-injected settings
      * @returns {Promise<Object>} Loaded settings
      */
@@ -162,9 +177,26 @@ if (!window.VSC.VideoSpeedConfig) {
         this.settings.audioBoolean = Boolean(storage.audioBoolean);
         this.settings.startHidden = Boolean(storage.startHidden);
         this.settings.hideOnMouseLeave = Boolean(storage.hideOnMouseLeave);
-        this.settings.hideOnMouseLeaveDelay = Number(storage.hideOnMouseLeaveDelay);
-        this.settings.controllerOpacity = Number(storage.controllerOpacity);
-        this.settings.controllerButtonSize = Number(storage.controllerButtonSize);
+        this.settings.hideOnMouseLeaveDelay = VideoSpeedConfig.validNumber(
+          storage.hideOnMouseLeaveDelay,
+          'hideOnMouseLeaveDelay',
+          0,
+          600
+        );
+        // Older option pages stored NaN for inputs like "0,5"; fall back to
+        // the default instead of rendering an invisible controller.
+        this.settings.controllerOpacity = VideoSpeedConfig.validNumber(
+          storage.controllerOpacity,
+          'controllerOpacity',
+          0,
+          1
+        );
+        this.settings.controllerButtonSize = VideoSpeedConfig.validNumber(
+          storage.controllerButtonSize,
+          'controllerButtonSize',
+          1,
+          100
+        );
         // One-time migration: drop legacy controllerCSS key, reset to new model.
         if (storage.controllerCSS !== null) {
           window.VSC.StorageManager.remove(['controllerCSS']);

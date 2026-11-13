@@ -272,16 +272,20 @@ class VideoSpeedExtension {
   /** Live-update the user's custom CSS and controller appearance when options are saved. */
   setupCSSLiveUpdates() {
     document.documentElement.addEventListener('VSC_STORAGE_CHANGED', (e) => {
-      const opacity = e.detail?.controllerOpacity?.newValue;
-      const buttonSize = e.detail?.controllerButtonSize?.newValue;
-      if (opacity === undefined && buttonSize === undefined) {
+      const { validNumber } = window.VSC.VideoSpeedConfig;
+      const opacity = e.detail?.controllerOpacity;
+      const buttonSize = e.detail?.controllerButtonSize;
+      if (!opacity && !buttonSize) {
         return;
       }
+      const appearance = {
+        opacity: opacity ? validNumber(opacity.newValue, 'controllerOpacity', 0, 1) : undefined,
+        buttonSize: buttonSize
+          ? validNumber(buttonSize.newValue, 'controllerButtonSize', 1, 100)
+          : undefined,
+      };
       for (const media of window.VSC.stateManager?.getAllMediaElements() ?? []) {
-        window.VSC.ShadowDOMManager.applyAppearance(media.vsc?.div?.shadowRoot, {
-          opacity: opacity === undefined ? undefined : Number(opacity),
-          buttonSize: buttonSize === undefined ? undefined : Number(buttonSize),
-        });
+        window.VSC.ShadowDOMManager.applyAppearance(media.vsc?.div?.shadowRoot, appearance);
       }
     });
     document.documentElement.addEventListener('VSC_STORAGE_CHANGED', (e) => {
