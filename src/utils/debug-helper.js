@@ -203,9 +203,9 @@ class DebugHelper {
 
     // Test if message bridge is working
     if (typeof chrome !== 'undefined' && chrome.runtime) {
-      console.log('✅ Chrome runtime available');
+      console.log('✅ Extension runtime available');
     } else {
-      console.log('ℹ️ Chrome runtime not available (expected in page context)');
+      console.log('ℹ️ Extension runtime not available (expected in page context)');
     }
 
     // Test direct VSC message handling

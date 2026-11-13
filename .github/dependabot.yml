@@ -15,9 +15,6 @@ updates:
       routine-development:
         patterns:
           - '*'
-        # Puppeteer minor releases roll bundled Chrome and need isolated E2E review.
-        exclude-patterns:
-          - puppeteer
         dependency-type: development
         update-types:
           - patch

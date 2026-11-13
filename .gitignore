@@ -11,9 +11,7 @@ AGENTS*.md
 
 # Build artifacts
 dist
-dist-firefox
 release
-tests/e2e/screenshots
 node_modules
 coverage
 

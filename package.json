@@ -1,7 +1,14 @@
 {
-  "name": "video-speed-controller",
+  "name": "videospeed-firefox",
   "version": "0.11.1",
   "description": "Speed up, slow down, advance and rewind HTML5 audio/video with shortcuts",
+  "homepage": "https://github.com/jan-nie/videospeed-firefox",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jan-nie/videospeed-firefox.git"
+  },
+  "bugs": "https://github.com/jan-nie/videospeed-firefox/issues",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
@@ -11,20 +18,15 @@
     "test:unit": "vitest run tests/unit/",
     "test:integration": "vitest run tests/integration/",
     "test:tlc": "node scripts/tlc.mjs",
-    "test:e2e": "npm run build && node tests/e2e/run-e2e.js",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "serve": "python3 -m http.server 8000",
-    "lint": "eslint 'src/**/*.js' 'tests/**/*.js'",
-    "lint:fix": "eslint 'src/**/*.js' 'tests/**/*.js' --fix",
-    "format": "prettier --write 'src/**/*.js' 'tests/**/*.js'",
-    "build:release": "RELEASE=1 node scripts/build.mjs",
-    "build:firefox": "node scripts/clean.mjs dist-firefox && node scripts/build.mjs --firefox",
-    "dev:firefox": "node scripts/build.mjs --firefox --watch",
-    "release:firefox": "node scripts/clean.mjs dist-firefox && node scripts/build.mjs --firefox --release && node scripts/package-release.js --firefox",
+    "lint": "eslint \"src/**/*.js\" \"tests/**/*.js\" \"scripts/**/*.{js,mjs}\"",
+    "lint:fix": "eslint \"src/**/*.js\" \"tests/**/*.js\" \"scripts/**/*.{js,mjs}\" --fix",
+    "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\"",
+    "build:release": "node scripts/clean.mjs dist && node scripts/build.mjs --release",
     "prerelease": "npm run clean && npm run lint && npm test && npm run test:tlc",
     "release": "npm run build:release && node scripts/package-release.js",
-    "release:github": "node scripts/github-release.js",
     "clean": "node scripts/clean.mjs dist release",
     "prepare": "husky"
   },
@@ -48,7 +50,6 @@
     "jsdom": "^30.0.1",
     "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
-    "puppeteer": "^25.4.0",
     "vitest": "^4.1.10"
   },
   "engines": {

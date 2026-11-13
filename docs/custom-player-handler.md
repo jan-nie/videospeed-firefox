@@ -148,6 +148,7 @@ These are the core operations. Each method **owns** the operation entirely -- th
 Called whenever the extension sets playback speed. This includes user-initiated speed changes, programmatic changes, and fight-back speed restoration.
 
 **Default behavior:**
+
 ```js
 handleSpeedChange(video, speed) {
   video.playbackRate = speed;
@@ -170,12 +171,12 @@ handleSpeedChange(video, speed) {
 
 **When is this called?**
 
-| Scenario | Example |
-|---|---|
-| User changes speed | Keyboard shortcut, popup slider |
-| Extension restores speed | Page load with "remember speed" enabled |
-| Fight-back | Site tried to reset speed, extension restores it |
-| Cooldown restore | Site changed speed during cooldown window |
+| Scenario                 | Example                                          |
+| ------------------------ | ------------------------------------------------ |
+| User changes speed       | Keyboard shortcut, popup slider                  |
+| Extension restores speed | Page load with "remember speed" enabled          |
+| Fight-back               | Site tried to reset speed, extension restores it |
+| Cooldown restore         | Site changed speed during cooldown window        |
 
 All paths go through `handleSpeedChange`. There are no direct `video.playbackRate` assignments in the extension's core.
 
@@ -184,6 +185,7 @@ All paths go through `handleSpeedChange`. There are no direct `video.playbackRat
 Called when the user seeks forward or backward. The `seekSeconds` value is negative for rewind.
 
 **Default behavior:**
+
 ```js
 handleSeek(video, seekSeconds) {
   const newTime = Math.max(0, Math.min(video.duration, video.currentTime + seekSeconds));
@@ -232,13 +234,13 @@ When a site externally changes `video.playbackRate` (e.g., the site's own speed 
 
 ## Existing handlers
 
-| Handler | Site | Key overrides |
-|---|---|---|
-| `YouTubeHandler` | youtube.com | Controller positioning, autohide CSS forwarding, video filtering |
-| `NetflixHandler` | netflix.com | Controller positioning, custom seeking via postMessage |
-| `FacebookHandler` | facebook.com | Controller positioning, dynamic content observer |
-| `AmazonHandler` | amazon.com, primevideo.com | Controller positioning, size-based video filtering |
-| `AppleHandler` | tv.apple.com | Controller positioning, shadow DOM video detection |
+| Handler           | Site                       | Key overrides                                                    |
+| ----------------- | -------------------------- | ---------------------------------------------------------------- |
+| `YouTubeHandler`  | youtube.com                | Controller positioning, autohide CSS forwarding, video filtering |
+| `NetflixHandler`  | netflix.com                | Controller positioning, custom seeking via postMessage           |
+| `FacebookHandler` | facebook.com               | Controller positioning, dynamic content observer                 |
+| `AmazonHandler`   | amazon.com, primevideo.com | Controller positioning, size-based video filtering               |
+| `AppleHandler`    | tv.apple.com               | Controller positioning, shadow DOM video detection               |
 
 ## Testing
 
@@ -246,7 +248,7 @@ Tests go in `tests/unit/site-handlers/`. The test infrastructure provides:
 
 - `createMockVideo(options)` - creates a video element with configurable properties
 - `createMockDOM()` - sets up a minimal DOM environment
-- `installChromeMock()` / `cleanupChromeMock()` - mocks the Chrome extension API
+- `installChromeMock()` / `cleanupChromeMock()` - mocks the WebExtension `chrome.*` API
 - `window.VSC.siteHandlerManager` - available after `installChromeMock()` + module loading
 
 To verify your handler is called during speed changes:

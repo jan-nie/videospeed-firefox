@@ -1,0 +1,113 @@
+name: Build & Release
+
+# Every push to main is linted, tested and packaged. When package.json
+# carries a version that has no tag yet, a GitHub release v<version> is
+# created with the add-on zip attached. Pushes without a version bump only
+# produce a workflow artifact.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Lint, test, package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the GitHub release on main
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: '17'
+          check-latest: false
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/videospeed/tlc
+          key: ${{ runner.os }}-tlc-${{ hashFiles('scripts/tlc.mjs') }}
+
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:tlc
+      - run: npm run build:release
+      - name: Validate add-on (addons-linter)
+        run: npx --yes web-ext@8 lint --source-dir dist
+      - run: node scripts/package-release.js
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "zip=release/videospeed-firefox-$VERSION.zip" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: videospeed-firefox-${{ steps.version.outputs.version }}
+          path: ${{ steps.version.outputs.zip }}
+          retention-days: 30
+
+      - name: Create GitHub release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          ZIP: ${{ steps.version.outputs.zip }}
+        run: |
+          TAG="v$VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists - bump the version in package.json to publish a new one."
+            exit 0
+          fi
+          NOTES="docs/release-notes/$VERSION.md"
+          if [ -f "$NOTES" ]; then
+            NOTES_ARGS=(--notes-file "$NOTES")
+          else
+            NOTES_ARGS=(--generate-notes)
+          fi
+          gh release create "$TAG" "$ZIP" \
+            --target "$GITHUB_SHA" \
+            --title "Video Speed Controller for Firefox $VERSION" \
+            "${NOTES_ARGS[@]}"
+
+      # Optional: submit the same zip to addons.mozilla.org. Enabled only when
+      # the repository variable AMO_SUBMIT is "true" and the secrets
+      # AMO_JWT_ISSUER / AMO_JWT_SECRET (AMO API key) are set.
+      - name: Submit to addons.mozilla.org
+        if: >-
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          vars.AMO_SUBMIT == 'true'
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          VERSION: ${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Only submit versions that were released in this run's commit.
+          TARGET=$(gh release view "v$VERSION" --json targetCommitish -q .targetCommitish 2>/dev/null || true)
+          if [ "$TARGET" != "$GITHUB_SHA" ]; then
+            echo "v$VERSION was not released by this commit - skipping AMO submission."
+            exit 0
+          fi
+          # The bundle is minified, so AMO reviewers need the sources too.
+          git archive --format=zip -o source.zip "$GITHUB_SHA"
+          npx --yes web-ext@8 sign --source-dir dist --channel listed \
+            --amo-metadata .github/amo-metadata.json \
+            --upload-source-code source.zip

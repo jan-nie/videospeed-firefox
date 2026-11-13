@@ -86,8 +86,8 @@ meet.google.com`.replace(regStrip, ''),
   };
 
   const SPEED_LIMITS = {
-    MIN: 0.07, // Video min rate per Chromium source
-    MAX: 16, // Maximum playback speed in Chrome per Chromium source
+    MIN: 0.07, // Firefox mutes audio below 0.0625x
+    MAX: 16, // Firefox mutes audio above 16x
   };
 
   const CONTROLLER_SIZE_LIMITS = {

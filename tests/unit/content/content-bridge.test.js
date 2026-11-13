@@ -154,7 +154,7 @@ describe('content-bridge', () => {
       expect(events[0].detail.settings).toBeTypeOf('object');
     });
 
-    it('passes details through unchanged without cloneInto (Chromium)', async () => {
+    it('passes details through unchanged without cloneInto (test env)', async () => {
       const { events, cleanup } = collectEvents('VSC_SETTINGS_READY');
       eventCleanup = cleanup;
 

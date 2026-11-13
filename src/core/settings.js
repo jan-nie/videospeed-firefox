@@ -58,7 +58,7 @@ if (!window.VSC.VideoSpeedConfig) {
     }
 
     /**
-     * Load settings from Chrome storage or pre-injected settings
+     * Load settings from extension storage or pre-injected settings
      * @returns {Promise<Object>} Loaded settings
      */
     async load() {
@@ -184,7 +184,7 @@ if (!window.VSC.VideoSpeedConfig) {
     }
 
     /**
-     * Save settings to Chrome storage
+     * Save settings to extension storage
      *
      * IMPORTANT: Only the keys present in newSettings are written to storage.
      * This avoids the "stale full-blob write" race condition where two contexts

@@ -1,5 +1,6 @@
 /**
- * Content Bridge — ISOLATED world thin bridge for chrome.* API access.
+ * Content Bridge — ISOLATED world thin bridge for WebExtension API access
+ * (the `chrome.*` namespace, which Firefox provides alongside `browser.*`).
  *
  * Runs at document_start. Communicates with inject.js (MAIN world) via
  * CustomEvents on document.documentElement.
@@ -27,8 +28,9 @@ let bridgeInitialized = false;
  *
  * Firefox wraps objects created in a content script in Xrays: the page sees
  * `event.detail` as an opaque object ("Permission denied to access
- * property"). cloneInto() (Firefox-only) copies the detail into the page's
- * compartment; Chromium shares plain data across worlds and needs no copy.
+ * property"). cloneInto() copies the detail into the page's compartment.
+ * It only exists in Firefox content scripts; the plain fallback keeps the
+ * bridge usable in the jsdom unit tests.
  * @param {string} type
  * @param {*} detail
  */

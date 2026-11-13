@@ -19,7 +19,7 @@
 (* expires. Repeated flash requests re-arm it; weak fairness prevents an    *)
 (* armed or due timer from remaining stuck when the environment stops       *)
 (* refreshing it. Actual milliseconds and DOM/CSS conformance are adapter   *)
-(* refinements checked in JavaScript and real Chrome.                       *)
+(* refinements checked in JavaScript and in the real browser.               *)
 (***************************************************************************)
 EXTENDS Naturals, FiniteSets
 
@@ -262,7 +262,7 @@ Spec ==
 (* State invariants. Render-precedence checks below are consistency lemmas  *)
 (* over the derived Visible predicate; transition safety comes from the     *)
 (* media, lifecycle, and non-interference properties. Real CSS is checked   *)
-(* by the Chrome matrix rather than represented as a second truth in TLA+.  *)
+(* in the real browser rather than represented as a second truth in TLA+.   *)
 (***************************************************************************)
 FlashMatchesMediaType ==
   \A i \in Controllers :

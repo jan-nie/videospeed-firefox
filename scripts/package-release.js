@@ -11,13 +11,12 @@ const rootDir = path.resolve(__dirname, '..');
 const require = createRequire(import.meta.url);
 const pkg = require(path.join(rootDir, 'package.json'));
 
-const isFirefox = process.env.TARGET === 'firefox' || process.argv.includes('--firefox');
-const distDir = path.join(rootDir, isFirefox ? 'dist-firefox' : 'dist');
+const distDir = path.join(rootDir, 'dist');
 const releaseDir = path.join(rootDir, 'release');
-const zipName = `videospeed-${isFirefox ? 'firefox-' : ''}${pkg.version}.zip`;
+const zipName = `videospeed-firefox-${pkg.version}.zip`;
 const zipPath = path.join(releaseDir, zipName);
 
-const CWS_SIZE_LIMIT = 128 * 1024 * 1024; // 128 MB
+const AMO_SIZE_LIMIT = 200 * 1024 * 1024; // addons.mozilla.org upload limit
 
 async function packageRelease() {
   // Verify dist exists
@@ -61,8 +60,8 @@ async function packageRelease() {
   const stats = await fs.stat(zipPath);
   const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
 
-  if (stats.size > CWS_SIZE_LIMIT) {
-    console.warn(`⚠️  Warning: ${zipName} is ${sizeMB} MB (Chrome Web Store limit is 128 MB)`);
+  if (stats.size > AMO_SIZE_LIMIT) {
+    console.warn(`⚠️  Warning: ${zipName} is ${sizeMB} MB (addons.mozilla.org limit is 200 MB)`);
   }
 
   console.log(`✅ Packaged ${zipName} (${sizeMB} MB) → release/`);

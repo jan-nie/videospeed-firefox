@@ -1,7 +1,12 @@
 # Contributing
 
-Video Speed Controller is an open source project licensed under the MIT license
-with many contributors. Contributions are welcome, and greatly appreciated.
+Video Speed Controller for Firefox is the Firefox port of
+[Video Speed Controller](https://github.com/igrigorik/videospeed), an open
+source project licensed under the MIT license with many contributors.
+Contributions are welcome, and greatly appreciated.
+
+Changes that are not Firefox-specific are best proposed upstream as well, so
+both versions benefit.
 
 If you would like to help, getting started is easy.
 
@@ -30,13 +35,13 @@ a POSIX shell. Windows users need:
 ### Contribution Process
 
 1. You must have a github account and be logged in
-2. Open <https://github.com/igrigorik/videospeed/>
+2. Open <https://github.com/jan-nie/videospeed-firefox/>
 3. Fork the repo by clicking the "Fork" link on the top-right corner of the page
 4. Once the fork is ready, clone to your local PC
 
    ```sh
-   $ git clone https://github.com/<USERNAME>/videospeed.git
-   Cloning into 'videospeed'...
+   $ git clone https://github.com/<USERNAME>/videospeed-firefox.git
+   Cloning into 'videospeed-firefox'...
     remote: Enumerating objects: 10, done.
     remote: Counting objects: 100% (10/10), done.
     remote: Compressing objects: 100% (9/9), done.
@@ -48,13 +53,10 @@ a POSIX shell. Windows users need:
 5. Create a branch for your changes
 
    ```sh
-    $ cd videospeed
-    videospeed$ git checkout -b bugfix/1-fix-double-click
-    M   .github/workflows/chrome-store-upload.yaml
-    M   README.md
-    M   options.js
+    $ cd videospeed-firefox
+    videospeed-firefox$ git checkout -b bugfix/1-fix-double-click
     Switched to a new branch 'bugfix/1-fix-double-click'
-    videospeed$
+    videospeed-firefox$
    ```
 
 6. Open the code in your favorite code editor, make your changes
@@ -68,9 +70,8 @@ a POSIX shell. Windows users need:
    > [prettier](https://prettier.io/). If it is not it may be autoformatted for
    > you or your pull request may be rejected.
 
-7. Next, open Chrome/Brave/Chromium and enable developer mode via
-   `Settings > Extensions > Manage Extensions` and toggle `Developer mode` in
-   the top-right corner.
+7. Next, open Firefox (128 or newer) and navigate to
+   `about:debugging#/runtime/this-firefox`.
 
 8. Install dependencies
 
@@ -84,7 +85,8 @@ a POSIX shell. Windows users need:
    npm run build
    ```
 
-10. Click `Load unpacked` and select the `dist/` folder (the build output).
+10. Click `Load Temporary Add-on…` and select `dist/manifest.json` (the build
+    output). Click `Reload` there after each rebuild.
 
 11. Try out your changes, make sure they work as expected
 
@@ -110,8 +112,8 @@ motivated them. `npm test` runs the JavaScript conformance and differential
 suites. Run `npm run test:tlc` separately for the pinned TLA+ models; it
 requires Java 11 or newer and downloads a checksum-verified TLC artifact
 outside the repository. CI runs both commands. Changes to shared/local
-arbitration or controller lifecycle should also run `npm run build && node
-tests/e2e/run-e2e.js arbitration` for the two-media browser fixture.
+arbitration or controller lifecycle should also be checked by hand in Firefox
+with two media elements on one page.
 
 ## Changing controller visibility
 
@@ -119,10 +121,9 @@ Controller visibility is governed by `docs/controller-visibility.md`
 (machine-checked twin: `specs/ControllerVisibility.tla`). PRs touching the
 visibility override, automatic hiding, feedback timers, CSS precedence,
 broadcast actions, or controller teardown must identify the changed transition
-or precedence rule. Run `npm test`, `npm run test:tlc`, `npm run build`, and
-`node tests/e2e/run-e2e.js display`. The TLA+ model checks temporal behavior;
-the Chrome matrix checks the real adopted shadow stylesheet. Neither replaces
-the other.
+or precedence rule. Run `npm test`, `npm run test:tlc` and `npm run build`,
+then check the controller in Firefox. The TLA+ model checks temporal behavior;
+the real adopted shadow stylesheet still needs a look in the browser.
 
 ## Optional
 
@@ -146,7 +147,7 @@ npm run test:tlc
 You should always be working with the latest version of the tool to make pull
 requests easy. If you want to do this easily, just add a second remote to your
 local git repo like this
-`git remote add upstream https://github.com/igrigorik/videospeed.git`
+`git remote add upstream https://github.com/jan-nie/videospeed-firefox.git`
 
 Now any time you like to pull the latest version in to your local branch you can
-simply issue the command `git pull upstream master`
+simply issue the command `git pull upstream main`

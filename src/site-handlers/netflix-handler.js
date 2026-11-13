@@ -63,7 +63,7 @@ class NetflixHandler extends window.VSC.BaseSiteHandler {
     super.initialize(document);
 
     // Netflix-specific script injection is handled by content script (injector.js)
-    // since Chrome APIs are not available in injected page context
+    // since extension APIs are not available in injected page context
     window.VSC.logger.debug(
       'Netflix handler initialized - script injection handled by content script'
     );

@@ -1,0 +1,6 @@
+{
+  "version": {
+    "license": "MIT",
+    "approval_notes": "Built from the public repository https://github.com/jan-nie/videospeed-firefox with `npm ci && npm run build:release` (esbuild bundles src/ into dist/; minified). Firefox port of https://github.com/igrigorik/videospeed."
+  }
+}

@@ -1,5 +1,5 @@
 /**
- * Chrome storage management utilities.
+ * Extension storage management utilities.
  *
  * Context-aware: uses chrome.storage.sync when available (extension contexts),
  * falls back to CustomEvent bridge with content-bridge.js (MAIN world).

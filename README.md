@@ -1,9 +1,16 @@
-# [Install from Chrome Web Store][chrome-web-store-link]
+# Video Speed Controller for Firefox
 
-[![Chrome Web Store][chrome-web-store-version]][chrome-web-store-link] [![Chrome Web Store Users][chrome-web-store-users-badge]][chrome-web-store-link] [![Chrome Web Store Users][chrome-web-store-stars]][chrome-web-store-link]
+[![Latest release][github-release-badge]][github-release-link]
+[![Build][ci-badge]][ci-link]
 
-**Video Speed Controller** gives you fine-grained control over any HTML5 video
-or audio element, on any site.
+**Video Speed Controller for Firefox** gives you fine-grained control over any
+HTML5 video or audio element, on any site.
+
+This is a Firefox port of [Video Speed Controller][upstream] by
+[Ilya Grigorik][upstream-author] and its contributors. All credit for the
+extension itself goes to them; this fork packages it for Firefox and carries
+Firefox-specific fixes. Please report problems with this port
+[here][issues], not upstream.
 
 ## The science of accelerated playback
 
@@ -64,32 +71,55 @@ shortcuts with different values for quick toggling. Click **Add New** in
 settings to create additional bindings. Refresh the page after making changes
 for them to take effect.
 
-## Firefox build
+## Install
 
-This fork also builds for Firefox (128+) from the same sources:
+- **Firefox Add-ons:** coming soon on addons.mozilla.org.
+- **From a release:** download `videospeed-firefox-<version>.zip` from the
+  [releases page][github-release-link]. Unsigned builds can only be loaded
+  temporarily (see below) or in Firefox Developer Edition / Nightly with
+  `xpinstall.signatures.required` set to `false`.
+
+Requires Firefox 128 or newer.
+
+## Differences from the original
+
+- Built for Firefox only: the manifest uses `background.scripts` (event
+  page) instead of a service worker and declares a gecko add-on ID.
+- Settings and messages crossing from the content script into the page-world
+  script are passed through `cloneInto()`, which Firefox requires.
+- Twitch: since November 2026 Twitch's player resets any speed above 2x.
+  The extension hides its own `ratechange` events from Twitch so speeds such
+  as 3.5x stick ([upstream issue #1651][issue-1651]).
+
+## Build from source
+
+Requires Node.js (see `.nvmrc`).
 
 ```sh
 npm ci
-npm run build:firefox     # unpacked add-on in dist-firefox/
-npm run release:firefox   # zip in release/ for AMO / signing
+npm run build           # unpacked add-on in dist/
+npm test                # unit + integration tests
+npm run build:release   # minified build in dist/
+node scripts/package-release.js   # zip in release/
 ```
 
-To try it without signing, open `about:debugging#/runtime/this-firefox`,
-click **Load Temporary Add-on…** and select `dist-firefox/manifest.json`
-(temporary add-ons are removed when Firefox restarts).
+To try a build, open `about:debugging#/runtime/this-firefox`, click
+**Load Temporary Add-on…** and select `dist/manifest.json`. Temporary add-ons
+are removed when Firefox restarts.
 
-Differences from the Chrome build are confined to the build step and the
-content bridge: the manifest uses `background.scripts` instead of a service
-worker and adds `browser_specific_settings.gecko`, and bridge event details
-are passed through `cloneInto()` so the page-world script can read them.
+Releases are built by GitHub Actions on every push to `main`; see
+[docs/release.md](docs/release.md).
 
 ## License
 
-(MIT License) - Copyright (c) 2014 Ilya Grigorik
+(MIT License) - Copyright (c) 2014 Ilya Grigorik. Firefox port maintained by
+[jan-nie](https://github.com/jan-nie).
 
-[chrome-web-store-version]: https://img.shields.io/chrome-web-store/v/nffaoalbilbmmfgbnbgppjihopabppdk?label=Chrome%20Web%20Store
-[chrome-web-store-users-badge]: https://img.shields.io/chrome-web-store/users/nffaoalbilbmmfgbnbgppjihopabppdk
-[chrome-web-store-stars]: https://img.shields.io/chrome-web-store/stars/nffaoalbilbmmfgbnbgppjihopabppdk
-[github-release-badge]: https://img.shields.io/github/v/release/igrigorik/videospeed
-[chrome-web-store-link]: https://chromewebstore.google.com/detail/video-speed-controller/nffaoalbilbmmfgbnbgppjihopabppdk
-[github-release-link]: https://github.com/igrigorik/videospeed/releases
+[upstream]: https://github.com/igrigorik/videospeed
+[upstream-author]: https://github.com/igrigorik
+[issues]: https://github.com/jan-nie/videospeed-firefox/issues
+[issue-1651]: https://github.com/igrigorik/videospeed/issues/1651
+[github-release-badge]: https://img.shields.io/github/v/release/jan-nie/videospeed-firefox
+[github-release-link]: https://github.com/jan-nie/videospeed-firefox/releases
+[ci-badge]: https://github.com/jan-nie/videospeed-firefox/actions/workflows/release.yml/badge.svg
+[ci-link]: https://github.com/jan-nie/videospeed-firefox/actions/workflows/release.yml

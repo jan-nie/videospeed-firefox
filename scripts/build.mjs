@@ -14,44 +14,13 @@ const pkg = require(path.join(rootDir, 'package.json'));
 
 const isWatch = process.argv.includes('--watch');
 const isRelease = process.env.RELEASE === '1' || process.argv.includes('--release');
-const isFirefox = process.env.TARGET === 'firefox' || process.argv.includes('--firefox');
-const outDir = path.resolve(rootDir, isFirefox ? 'dist-firefox' : 'dist');
-
-// Firefox add-on ID. Must stay stable across releases so AMO and installed
-// copies recognize updates; change it once if you publish your own listing.
-const GECKO_ID = '{9f579d8f-4e3d-4b56-8436-ac59480202dd}';
-// world: "MAIN" content scripts need Firefox 128+.
-const GECKO_MIN_VERSION = '128.0';
-
-/**
- * Adapt the Chrome MV3 manifest for Firefox:
- * - Firefox runs MV3 background code as an event page (background.scripts),
- *   not as a service worker.
- * - MV3 add-ons need an explicit gecko ID, and AMO requires the data
- *   collection declaration (this extension collects nothing).
- * @param {Object} manifest
- * @returns {Object}
- */
-function toFirefoxManifest(manifest) {
-  const { minimum_chrome_version: _chromeOnly, ...rest } = manifest;
-  return {
-    ...rest,
-    background: { scripts: [manifest.background.service_worker] },
-    browser_specific_settings: {
-      gecko: {
-        id: GECKO_ID,
-        strict_min_version: GECKO_MIN_VERSION,
-        data_collection_permissions: { required: ['none'] },
-      },
-    },
-  };
-}
+const outDir = path.resolve(rootDir, 'dist');
 
 const common = {
   bundle: true,
   sourcemap: isRelease ? false : false, // set true locally if debugging
   minify: isRelease,
-  target: isFirefox ? 'firefox128' : 'chrome114',
+  target: 'firefox128', // keep in sync with manifest strict_min_version
   platform: 'browser',
   legalComments: 'none',
   format: 'iife', // preserve side-effects and simple global init without ESM runtime
@@ -64,15 +33,10 @@ async function copyStaticFiles() {
     await fs.emptyDir(outDir);
 
     // Inject version from package.json into manifest
-    let manifest = await fs.readJson(path.join(rootDir, 'manifest.json'));
+    const manifest = await fs.readJson(path.join(rootDir, 'manifest.json'));
     manifest.version = pkg.version;
-    if (isFirefox) {
-      manifest = toFirefoxManifest(manifest);
-    }
     await fs.writeJson(path.join(outDir, 'manifest.json'), manifest, { spaces: 2 });
-    console.log(
-      `✅ Manifest version set to ${pkg.version}${isRelease ? ' (release)' : ''}${isFirefox ? ' (firefox)' : ''}`
-    );
+    console.log(`✅ Manifest version set to ${pkg.version}${isRelease ? ' (release)' : ''}`);
 
     // Paths to copy
     const pathsToCopy = {

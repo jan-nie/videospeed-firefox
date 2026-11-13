@@ -155,7 +155,7 @@ vsc-controller { top: 50px !important; }
       <section>
         <div id="faq">
           <ul class="faq-toc">
-            <li><a href="#faq-local">Local files / Incognito</a></li>
+            <li><a href="#faq-local">Private windows</a></li>
             <li><a href="#faq-disable">Disable on a site</a></li>
             <li><a href="#faq-site-speed">Default speed per site</a></li>
             <li><a href="#faq-remember">Remember speed</a></li>
@@ -167,18 +167,12 @@ vsc-controller { top: 50px !important; }
           </ul>
           <hr />
 
-          <h4 id="faq-local">
-            The speed controls are not showing up for local videos or Incognito mode?
-          </h4>
-          <p>
-            To enable playback of local media (e.g. File &gt; Open File) or Incognito mode, you need
-            to manually grant additional permissions to the extension.
-          </p>
+          <h4 id="faq-local">The speed controls are not showing up in private windows?</h4>
+          <p>Firefox does not run extensions in private windows unless you allow it.</p>
           <ul>
-            <li>In a new tab, navigate to <code>chrome://extensions</code></li>
+            <li>In a new tab, navigate to <code>about:addons</code></li>
             <li>
-              Find "Video Speed Controller" extension in the list and enable "Allow access to file
-              URLs" and/or "Allow in Incognito".
+              Open "Video Speed Controller for Firefox" and set "Run in Private Windows" to "Allow".
             </li>
           </ul>
 
@@ -281,7 +275,7 @@ vsc-controller { top: 50px !important; }
           </p>
         </div>
         <div class="row">
-          <button id="about" class="secondary">About Video Speed Controller</button>
+          <button id="about" class="secondary">About Video Speed Controller for Firefox</button>
           <button id="feedback" class="secondary">Send Feedback</button>
         </div>
       </section>
