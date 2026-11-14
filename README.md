@@ -82,7 +82,7 @@ immediately; only site rules (disable a site, per-site default speed) and
   temporarily (see below) or in Firefox Developer Edition / Nightly with
   `xpinstall.signatures.required` set to `false`.
 
-Requires Firefox 128 or newer.
+Requires Firefox 140 or newer (Firefox for Android 142).
 
 ## Differences from the original
 

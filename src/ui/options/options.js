@@ -72,7 +72,10 @@ function updateCSSHighlight() {
   const textarea = document.getElementById('controllerCSS');
   const highlight = document.getElementById('cssHighlight');
   if (textarea && highlight) {
-    highlight.innerHTML = `${highlightCSS(textarea.value)}\n`;
+    // highlightCSS() escapes the text first and only adds <span> wrappers, so
+    // parse its output with DOMParser instead of assigning it to innerHTML.
+    const parsed = new DOMParser().parseFromString(highlightCSS(textarea.value), 'text/html');
+    highlight.replaceChildren(...parsed.body.childNodes, document.createTextNode('\n'));
   }
 }
 
@@ -902,7 +905,7 @@ async function restore_options() {
 
     // Clear existing shortcut rows (handles restore_defaults re-render)
     const shortcutsContainer = document.getElementById('shortcuts-container');
-    shortcutsContainer.innerHTML = '';
+    shortcutsContainer.replaceChildren();
 
     for (const item of bindings) {
       if (item.predefined) {

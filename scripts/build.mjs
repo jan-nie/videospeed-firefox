@@ -20,7 +20,7 @@ const common = {
   bundle: true,
   sourcemap: isRelease ? false : false, // set true locally if debugging
   minify: isRelease,
-  target: 'firefox128', // keep in sync with manifest strict_min_version
+  target: 'firefox140', // keep in sync with manifest strict_min_version
   platform: 'browser',
   legalComments: 'none',
   format: 'iife', // preserve side-effects and simple global init without ESM runtime
