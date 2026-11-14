@@ -1,14 +1,13 @@
-name: Build & Release
+name: Release
 
-# Every push to main is linted, tested and packaged. When package.json
-# carries a version that has no tag yet, a GitHub release v<version> is
-# created with the add-on zip attached. Pushes without a version bump only
-# produce a workflow artifact.
+# Runs after a merge to main (or manually): the code is checked again, then
+# packaged. When package.json carries a version that has no tag yet, a GitHub
+# release v<version> is created with the add-on zip attached. Pushes without
+# a version bump only produce a workflow artifact. Pull requests are covered
+# by the separate "Pull Request Checks" workflow.
 
 on:
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -17,11 +16,11 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: false # never cancel a release that is already running
 
 jobs:
-  build:
-    name: Lint, test, package
+  release:
+    name: Test, package, release
     runs-on: ubuntu-latest
     permissions:
       contents: write # create the GitHub release on main

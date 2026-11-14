@@ -1,0 +1,46 @@
+name: Pull Request Checks
+
+# Verifies every pull request against main: dependency audit, lint, unit and
+# integration tests, TLA+ model checks, plus a release build validated with
+# addons-linter. Nothing is packaged, uploaded or released here - that happens
+# in the "Release" workflow after the merge.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, test, verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: '17'
+          check-latest: false
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/videospeed/tlc
+          key: ${{ runner.os }}-tlc-${{ hashFiles('scripts/tlc.mjs') }}
+
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:tlc
+      - run: npm run build:release
+      - name: Validate add-on (addons-linter)
+        run: npx --yes web-ext@8 lint --source-dir dist

@@ -127,8 +127,10 @@ async function runModel(jarPath, model) {
         '-Xmx512m',
         '-jar',
         jarPath,
+        // The search is exhaustive, so the worker count only changes how fast
+        // it finishes, never the explored state space or the verdict.
         '-workers',
-        '1',
+        process.env.TLC_WORKERS || 'auto',
         // Keep TLC's fingerprint polynomial stable so repeated local/CI runs
         // explore the same state identity space and retain a low collision bound.
         '-fp',
