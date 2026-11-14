@@ -84,7 +84,7 @@ jobs:
           fi
           gh release create "$TAG" "$ZIP" \
             --target "$GITHUB_SHA" \
-            --title "Video Speed Controller for Firefox $VERSION" \
+            --title "v$VERSION" \
             "${NOTES_ARGS[@]}"
 
       # Optional: submit the same zip to addons.mozilla.org. Enabled only when
