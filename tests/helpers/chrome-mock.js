@@ -16,6 +16,19 @@ const mockStorage = {
   logLevel: 1,
 };
 
+// Pending mock timers. cleanupChromeMock() cancels them so a callback that was
+// still queued when a test file finished cannot run after the test
+// environment (window, document) has been torn down.
+const pendingTimers = new Set();
+
+function schedule(fn, ms) {
+  const id = setTimeout(() => {
+    pendingTimers.delete(id);
+    fn();
+  }, ms);
+  pendingTimers.add(id);
+}
+
 // Track onChanged listeners so set() can fire them
 const onChangedListeners = [];
 
@@ -24,7 +37,7 @@ export const chromeMock = {
     sync: {
       get: (keys, callback) => {
         // Simulate async behavior
-        setTimeout(() => {
+        schedule(() => {
           const result =
             typeof keys === 'object' && keys !== null
               ? Object.keys(keys).reduce((acc, key) => {
@@ -45,13 +58,13 @@ export const chromeMock = {
         Object.assign(mockStorage, items);
 
         // Fire onChanged listeners asynchronously (mirrors real chrome behavior)
-        setTimeout(() => {
+        schedule(() => {
           for (const listener of onChangedListeners) {
             listener(changes, 'sync');
           }
         }, 5);
 
-        setTimeout(() => {
+        schedule(() => {
           if (globalThis.chrome && callback) {
             callback();
           }
@@ -60,11 +73,11 @@ export const chromeMock = {
       remove: (keys, callback) => {
         const keysArray = Array.isArray(keys) ? keys : [keys];
         keysArray.forEach((key) => delete mockStorage[key]);
-        setTimeout(() => callback && callback(), 10);
+        schedule(() => callback && callback(), 10);
       },
       clear: (callback) => {
         Object.keys(mockStorage).forEach((key) => delete mockStorage[key]);
-        setTimeout(() => callback && callback(), 10);
+        schedule(() => callback && callback(), 10);
       },
     },
     onChanged: {
@@ -100,12 +113,12 @@ export const chromeMock = {
       ]);
     },
     sendMessage: (tabId, message, callback) => {
-      setTimeout(() => callback && callback({}), 10);
+      schedule(() => callback && callback({}), 10);
     },
   },
   action: {
     setIcon: (details, callback) => {
-      setTimeout(() => callback && callback(), 10);
+      schedule(() => callback && callback(), 10);
     },
   },
 };
@@ -121,6 +134,8 @@ export function installChromeMock() {
  * Clean up Chrome API mock from global scope
  */
 export function cleanupChromeMock() {
+  pendingTimers.forEach((id) => clearTimeout(id));
+  pendingTimers.clear();
   delete globalThis.chrome;
 }
 
